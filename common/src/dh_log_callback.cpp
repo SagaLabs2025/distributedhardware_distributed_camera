@@ -18,9 +18,16 @@
 #include <mutex>
 
 // 全局日志回调指针（由测试程序设置）
+// 使用 __declspec(dllexport) 确保可以被 DLL 和 EXE 共享
+#ifdef _WIN32
+#define DLL_CALLBACK_EXPORT __declspec(dllexport)
+#else
+#define DLL_CALLBACK_EXPORT
+#endif
+
 extern "C" {
-    // 全局回调函数指针
-    void (*g_DH_LogCallback)(DHLogLevel, const char*, const char*) = nullptr;
+    // 全局回调函数指针（导出以便 EXE 可以直接设置）
+    DLL_CALLBACK_EXPORT void (*g_DH_LogCallback)(DHLogLevel, const char*, const char*) = nullptr;
 
     // 静态存储的std::function（避免被析构）
     static DHLogCallbackFunc* g_callbackHolder = nullptr;
