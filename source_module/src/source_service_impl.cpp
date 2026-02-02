@@ -107,13 +107,33 @@ int32_t SourceServiceImpl::StartCapture() {
         return 0;
     }
 
-    // 模拟 HDF 回调流程
-    // 对应原始代码 dcamera_source_data_process.cpp:150
+    // ===== 模拟 HDF 回调流程 =====
+    // 对应原始代码 dcamera_provider_callback_impl.cpp
+
+    // 1. OpenSession
+    DHLOGI("[HDF_MOCK] OpenSession called");
+    DHLOGI("[HDF_MOCK] OpenSession Start, devId: %{public}s dhId: %{public}s",
+            deviceId_.c_str(), dhId_.c_str());
+    DHLOGI("[HDF_MOCK] OpenSession End, devId: %{public}s dhId: %{public}s",
+            deviceId_.c_str(), dhId_.c_str());
+
+    // 2. ConfigureStreams
+    DHLOGI("[HDF_MOCK] ConfigureStreams called");
+    DHLOGI("[HDF_MOCK] ConfigureStreams devId: %{public}s dhId: %{public}s",
+            deviceId_.c_str(), dhId_.c_str());
+
+    // 3. StartCapture
+    DHLOGI("[HDF_MOCK] StartCapture called");
+    DHLOGI("[HDF_MOCK] StartCapture devId: %{public}s dhId: %{public}s",
+            deviceId_.c_str(), dhId_.c_str());
+
+    // 模拟 HDF 驱动原始代码: dcamera_source_data_process.cpp:150
     DHLOGI("[SOURCE_IMPL] DCameraSourceDataProcess StartCapture, dhId: %{public}s",
             dhId_.c_str());
 
     // 启动Socket接收器开始接收数据
     if (socketReceiver_->StartReceiving() != 0) {
+        DHLOGE("[HDF_MOCK] Failed to start receiving");
         DHLOGE("[SOURCE_IMPL] Failed to start receiving");
         return -1;
     }
@@ -125,6 +145,7 @@ int32_t SourceServiceImpl::StartCapture() {
         callback_->OnSourceStateChanged("CAPTURING");
     }
 
+    DHLOGI("[HDF_MOCK] StartCapture success");
     DHLOGI("[SOURCE_IMPL] StartCapture success");
     return 0;
 }
