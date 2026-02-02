@@ -14,6 +14,7 @@ set(FFMPEG_LIB_DIR "${VCPKG_ROOT}/lib")
 set(SOURCE_SOURCES
     src/source_service_impl.cpp
     src/socket_receiver.cpp
+    ../common/src/dh_log_callback.cpp
 )
 
 # 头文件

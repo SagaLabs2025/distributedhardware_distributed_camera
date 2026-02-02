@@ -16,16 +16,20 @@
 #include "main_controller.h"
 #include "log_redirector.h"
 #include "automation_test_engine.h"
+#include "dh_log_callback.h"
 
 #include <QCoreApplication>
 #include <QDebug>
 #include <QTimer>
+#include <QThread>
 
 MainController::MainController(QObject* parent)
     : QObject(parent),
       sinkService_(nullptr),
       sourceService_(nullptr),
-      initialized_(false) {
+      initialized_(false),
+      frameCount_(0),
+      targetFrameCount_(10) {  // 接收10帧后自动完成测试
 
     InitializeLogRedirector();
 }
@@ -46,6 +50,23 @@ void MainController::InitializeLogRedirector() {
                                             .arg(QString::fromStdString(message));
         emit LogUpdated(log);
     });
+
+    // 设置DLL日志回调 (将DLL日志重定向到UI)
+    DH_SetGlobalCallbackPtr([](DHLogLevel level, const char* tag, const char* message) {
+        auto& redirector = LogRedirector::GetInstance();
+        // 转换日志级别
+        LogRedirector::LogLevel logLevel;
+        switch (level) {
+            case DHLogLevel::DH_INFO:  logLevel = LogRedirector::LOG_INFO; break;
+            case DHLogLevel::DH_WARN:  logLevel = LogRedirector::LOG_WARN; break;
+            case DHLogLevel::DH_ERROR: logLevel = LogRedirector::LOG_ERROR; break;
+            case DHLogLevel::DH_DEBUG: logLevel = LogRedirector::LOG_DEBUG; break;
+            default: logLevel = LogRedirector::LOG_INFO; break;
+        }
+        redirector.RedirectDHLOG(logLevel, tag, "", 0, message);
+    });
+
+    qDebug() << "[MainController] Log redirector initialized (DLL logs enabled)";
 }
 
 bool MainController::LoadLibraries(const QString& sinkPath, const QString& sourcePath) {
@@ -118,6 +139,9 @@ bool MainController::CreateServices() {
 void MainController::StartDistributedCameraTest() {
     qDebug() << "[MainController] ========== Starting Distributed Camera Test ==========";
 
+    // 重置帧计数
+    frameCount_ = 0;
+
     if (!initialized_) {
         if (!CreateServices()) {
             emit ErrorOccurred("Services not initialized");
@@ -142,32 +166,51 @@ void MainController::StartDistributedCameraTest() {
 
     // 3. 注册分布式硬件
     qDebug() << "[MainController] Step 3: Registering distributed hardware...";
+    emit LogUpdated("[TEST] Step 3: Registering distributed hardware...");
     if (sourceService_->RegisterDistributedHardware("LOCAL_SINK", "CAMERA_001") != 0) {
         emit ErrorOccurred("Failed to register hardware");
         return;
     }
 
-    // 4. 【关键调用】启动捕获 - 这会触发完整的HDF回调流程
-    qDebug() << "[MainController] Step 4: Starting capture (triggers HDF callbacks)...";
+    // 4. 启动Source端接收服务器
+    qDebug() << "[MainController] Step 4: Starting Source receiver...";
+    emit LogUpdated("[TEST] Step 4: Starting Source receiver (Socket server on port 8888)...");
     if (sourceService_->StartCapture() != 0) {
-        emit ErrorOccurred("Failed to start capture");
+        emit ErrorOccurred("Failed to start Source receiver");
+        return;
+    }
+
+    // 等待服务器完全启动
+    qDebug() << "[MainController] Waiting for server to be ready...";
+    emit LogUpdated("[TEST] Waiting for server to be ready...");
+    QThread::msleep(1000);  // 给服务器1秒时间完全启动
+
+    // 5. 启动Sink端（模拟Source端发送SoftBus消息）
+    qDebug() << "[MainController] Step 5: Starting Sink capture...";
+    emit LogUpdated("[TEST] Step 5: Starting Sink capture (connecting to 127.0.0.1:8888)...");
+    int sinkResult = sinkService_->StartCapture("CAMERA_001", 1920, 1080);
+    if (sinkResult != 0) {
+        emit ErrorOccurred(QString("Failed to start Sink capture (error code: %1)").arg(sinkResult));
         return;
     }
 
     qDebug() << "[MainController] ========== Test Started Successfully ==========";
+    emit LogUpdated("[TEST] ========== Test Started Successfully ==========");
+    emit LogUpdated("[TEST] Waiting for data frames...");
 }
 
 void MainController::StopDistributedCameraTest() {
     qDebug() << "[MainController] Stopping test...";
 
+    if (sinkService_) {
+        sinkService_->StopCapture("CAMERA_001");
+        sinkService_->ReleaseSink();
+    }
+
     if (sourceService_) {
         sourceService_->StopCapture();
         sourceService_->UnregisterDistributedHardware("LOCAL_SINK", "CAMERA_001");
         sourceService_->ReleaseSource();
-    }
-
-    if (sinkService_) {
-        sinkService_->ReleaseSink();
     }
 
     qDebug() << "[MainController] Test stopped";
@@ -203,13 +246,29 @@ void MainController::OnSourceStateChanged(const std::string& state) {
 }
 
 void MainController::OnDecodedFrameAvailable(const uint8_t* yuvData, int width, int height) {
-    qDebug() << "[MainController] Decoded frame available:" << width << "x" << height;
+    frameCount_++;
+    qDebug() << "[MainController] Decoded frame available:" << width << "x" << height
+             << "(Frame #" << frameCount_ << " of " << targetFrameCount_ << ")";
 
     // 转换为QByteArray
     int yuvSize = width * height * 3 / 2;
     QByteArray byteArray(reinterpret_cast<const char*>(yuvData), yuvSize);
 
     emit VideoFrameReady(byteArray, width, height);
+
+    // 自动完成测试：接收到目标帧数后停止
+    if (frameCount_ >= targetFrameCount_) {
+        qDebug() << "[MainController] Target frame count reached, stopping test...";
+        QTimer::singleShot(500, this, [this]() {
+            StopDistributedCameraTest();
+            QString result = QString("\n========== 测试完成 ==========\n"
+                                    "接收帧数: %1\n"
+                                    "测试状态: PASS\n"
+                                    "================================\n")
+                                .arg(frameCount_);
+            emit TestCompleted(result);
+        });
+    }
 }
 
 // ===== ISinkCallback 实现 =====

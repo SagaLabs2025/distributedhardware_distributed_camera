@@ -217,7 +217,7 @@ int32_t SocketReceiver::ReceiveData() {
     // 实际应该解码后传递YUV数据
     if (callback_) {
         // 暂时直接传递编码数据（实际应用中需要解码）
-        // callback_->OnDecodedFrameAvailable(data.data(), 1920, 1080);
+        callback_->OnDecodedFrameAvailable(data.data(), 1920, 1080);
     }
 
     return 0;

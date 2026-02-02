@@ -20,38 +20,41 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include "dh_log_callback.h"
 
 #ifdef _WIN32
 #define vsnprintf vsnprintf_s
 #endif
 
 // 简化的日志宏定义，用于Windows测试环境
+// 使用回调机制将日志发送到测试程序
+
 #define DHLOGI(fmt, ...) \
     do { \
         char buffer[1024]; \
         snprintf(buffer, sizeof(buffer), fmt, ##__VA_ARGS__); \
-        std::cout << "[INFO] " << buffer << std::endl; \
+        DH_SendLog(DHLogLevel::DH_INFO, "DHLOG", buffer); \
     } while(0)
 
 #define DHLOGE(fmt, ...) \
     do { \
         char buffer[1024]; \
         snprintf(buffer, sizeof(buffer), fmt, ##__VA_ARGS__); \
-        std::cerr << "[ERROR] " << buffer << std::endl; \
+        DH_SendLog(DHLogLevel::DH_ERROR, "DHLOG", buffer); \
     } while(0)
 
 #define DHLOGW(fmt, ...) \
     do { \
         char buffer[1024]; \
         snprintf(buffer, sizeof(buffer), fmt, ##__VA_ARGS__); \
-        std::cout << "[WARN] " << buffer << std::endl; \
+        DH_SendLog(DHLogLevel::DH_WARN, "DHLOG", buffer); \
     } while(0)
 
 #define DHLOGD(fmt, ...) \
     do { \
         char buffer[1024]; \
         snprintf(buffer, sizeof(buffer), fmt, ##__VA_ARGS__); \
-        std::cout << "[DEBUG] " << buffer << std::endl; \
+        DH_SendLog(DHLogLevel::DH_DEBUG, "DHLOG", buffer); \
     } while(0)
 
 // 匿名处理函数（简化版）

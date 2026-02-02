@@ -6,6 +6,13 @@ project(DistributedCameraTest VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# MinGW编译器特殊处理
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    # 禁用Qt的MSVC特定编译选项
+    set(QT_CCFLAGS_COVERAGE "" CACHE STRING "" FORCE)
+    add_compile_options(-Wno-attributes)
+endif()
+
 # vcpkg FFmpeg 路径
 set(VCPKG_ROOT "C:/Work/vcpkg/vcpkg/installed/x64-windows")
 set(FFMPEG_INCLUDE_DIR "${VCPKG_ROOT}/include")
@@ -26,6 +33,7 @@ set(PROJECT_SOURCES
     src/main_controller.cpp
     src/automation_test_engine.cpp
     src/log_redirector.cpp
+    ../common/src/dh_log_callback.cpp
 )
 
 # 头文件

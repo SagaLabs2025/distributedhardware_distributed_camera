@@ -100,6 +100,15 @@ int32_t SocketSender::SendData(const std::vector<uint8_t>& data) {
         return -1;
     }
 
+    // 先发送数据长度（与Source端的ReceiveData协议匹配）
+    uint32_t dataLen = static_cast<uint32_t>(data.size());
+    int32_t ret = SendDataInternal(&dataLen, sizeof(dataLen));
+    if (ret < 0) {
+        DHLOGE("[SOCKET_SENDER] Failed to send data length");
+        return ret;
+    }
+
+    // 再发送数据内容
     return SendDataInternal(data.data(), static_cast<int>(data.size()));
 }
 

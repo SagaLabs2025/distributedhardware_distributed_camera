@@ -36,6 +36,8 @@ public:
     // IDistributedCameraSink 实现
     int32_t InitSink(const std::string& params, ISinkCallback* callback) override;
     int32_t ReleaseSink() override;
+    int32_t StartCapture(const std::string& dhId, int width, int height) override;
+    int32_t StopCapture(const std::string& dhId) override;
 
     // 【内部方法】由Socket接收消息后调用
     int32_t OnStartCaptureMessage(const std::string& dhId, int width, int height);

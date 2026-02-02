@@ -16,6 +16,7 @@ set(SINK_SOURCES
     src/yuv_file_camera.cpp
     src/ffmpeg_encoder_wrapper.cpp
     src/socket_sender.cpp
+    ../common/src/dh_log_callback.cpp
 )
 
 # 头文件

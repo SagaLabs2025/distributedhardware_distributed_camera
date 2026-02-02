@@ -100,6 +100,8 @@ private:
     QString sinkPath_;
     QString sourcePath_;
     bool initialized_;
+    int frameCount_;           // 接收帧计数器
+    int targetFrameCount_;     // 目标帧数（用于自动完成测试）
 };
 
 #endif // MAIN_CONTROLLER_H

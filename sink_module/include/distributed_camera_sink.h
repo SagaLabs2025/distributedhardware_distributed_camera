@@ -45,8 +45,14 @@ public:
     // 释放Sink服务
     virtual int32_t ReleaseSink() = 0;
 
+    // 【测试环境专用】启动捕获（模拟Source端发送SoftBus消息）
+    virtual int32_t StartCapture(const std::string& dhId, int width, int height) = 0;
+
+    // 【测试环境专用】停止捕获
+    virtual int32_t StopCapture(const std::string& dhId) = 0;
+
     // 【内部方法，不对外导出】
-    // StartCapture() 由 Source 端通过 SoftBus 消息触发
+    // 在真实环境中，StartCapture() 由 Source 端通过 SoftBus 消息触发
     // 对应原始代码：dcamera_sink_data_process.cpp:72
     // DHLOGI("StartCapture dhId: %{public}s, width: %{public}d...")
     //

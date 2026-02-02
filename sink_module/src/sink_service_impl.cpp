@@ -89,6 +89,21 @@ int32_t SinkServiceImpl::ReleaseSink() {
     return 0;
 }
 
+int32_t SinkServiceImpl::StartCapture(const std::string& dhId, int width, int height) {
+    DHLOGI("[SINK_IMPL] StartCapture called (test environment), dhId: %{public}s, width: %{public}d, height: %{public}d",
+            dhId.c_str(), width, height);
+
+    // 测试环境直接调用内部方法
+    return OnStartCaptureMessage(dhId, width, height);
+}
+
+int32_t SinkServiceImpl::StopCapture(const std::string& dhId) {
+    DHLOGI("[SINK_IMPL] StopCapture called (test environment), dhId: %{public}s", dhId.c_str());
+
+    // 测试环境直接调用内部方法
+    return OnStopCaptureMessage(dhId);
+}
+
 int32_t SinkServiceImpl::OnStartCaptureMessage(const std::string& dhId, int width, int height) {
     DHLOGI("[SINK_IMPL] OnStartCaptureMessage called, dhId: %{public}s, width: %{public}d, height: %{public}d",
             dhId.c_str(), width, height);
@@ -119,6 +134,28 @@ void SinkServiceImpl::StartSinkThread() {
     if (running_) {
         DHLOGW("[SINK_IMPL] Sink thread already running");
         return;
+    }
+
+    DHLOGI("[SINK_IMPL] Attempting to connect to Source at 127.0.0.1:8888...");
+
+    // 连接到Source端 (使用默认端口8888)
+    int connectResult = socketSender_->ConnectToSource("127.0.0.1", 8888);
+    if (connectResult != 0) {
+        DHLOGE("[SINK_IMPL] Failed to connect to Source (error: %d), retrying...", connectResult);
+        // 给Source端一些时间启动服务器
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        connectResult = socketSender_->ConnectToSource("127.0.0.1", 8888);
+        if (connectResult != 0) {
+            DHLOGE("[SINK_IMPL] Still cannot connect to Source (error: %d)", connectResult);
+            // 不要return，尝试继续（可能有其他问题）
+        }
+    }
+
+    // 检查连接状态
+    if (socketSender_->IsConnected()) {
+        DHLOGI("[SINK_IMPL] Connected to Source successfully");
+    } else {
+        DHLOGW("[SINK_IMPL] Not connected, but will try to send data anyway");
     }
 
     running_ = true;
