@@ -1,0 +1,9 @@
+{
+  "skills": [
+    {
+      "name": "distributed-camera",
+      "description": "OpenHarmony分布式相机开发技能 - 包含架构、依赖、工作流程和测试方法",
+      "file": ".claude/skills/distributed-camera.md"
+    }
+  ]
+}

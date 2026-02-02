@@ -42,16 +42,39 @@ int32_t FFmpegEncoderWrapper::Initialize(int width, int height) {
     height_ = height;
     frameSize_ = width * height * 3 / 2;  // NV12
 
-    // 查找 H.265 编码器
+    // 尝试多个编码器，按优先级顺序
+    // 1. H.265 (libx265) - 最佳压缩
     codec_ = avcodec_find_encoder_by_name("libx265");
-    if (!codec_) {
-        DHLOGE("[FFMPEG_ENC] Could not find libx265 encoder, trying hevc...");
-        codec_ = avcodec_find_encoder(AV_CODEC_ID_HEVC);
-    }
+    if (codec_) {
+        DHLOGI("[FFMPEG_ENC] Found libx265 encoder");
+    } else {
+        DHLOGW("[FFMPEG_ENC] libx265 not found, trying libx264...");
 
-    if (!codec_) {
-        DHLOGE("[FFMPEG_ENC] Could not find HEVC encoder");
-        return -1;
+        // 2. H.264 (libx264) - 通用性好
+        codec_ = avcodec_find_encoder_by_name("libx264");
+        if (codec_) {
+            DHLOGI("[FFMPEG_ENC] Found libx264 encoder");
+        } else {
+            DHLOGW("[FFMPEG_ENC] libx264 not found, trying native encoders...");
+
+            // 3. 原生 HEVC 编码器
+            codec_ = avcodec_find_encoder(AV_CODEC_ID_HEVC);
+            if (codec_) {
+                DHLOGI("[FFMPEG_ENC] Found native HEVC encoder");
+            } else {
+                DHLOGW("[FFMPEG_ENC] Native HEVC not found, trying H.264...");
+
+                // 4. 原生 H.264 编码器
+                codec_ = avcodec_find_encoder(AV_CODEC_ID_H264);
+                if (codec_) {
+                    DHLOGI("[FFMPEG_ENC] Found native H.264 encoder");
+                } else {
+                    DHLOGE("[FFMPEG_ENC] Could not find any encoder (tried: libx265, libx264, HEVC, H264)");
+                    DHLOGE("[FFMPEG_ENC] Your FFmpeg build may not include encoder libraries");
+                    return -1;
+                }
+            }
+        }
     }
 
     // 创建编码器上下文

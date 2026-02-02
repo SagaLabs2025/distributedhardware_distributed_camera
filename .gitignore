@@ -1,0 +1,56 @@
+# Build directories
+build_sink/
+build_source/
+build_ui/
+build_test/
+mock/build/
+test/unit/mock/build/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Compiled files
+*.obj
+*.o
+*.a
+*.dll
+*.exe
+*.lib
+
+# Test files
+test_sink_load.cpp
+test_*.cpp
+dual_test.cpp
+enhanced_dual_test.cpp
+verify_yuv.cpp
+main.cpp
+
+# Scripts
+*_rebuild.bat
+*_rebuild.ps1
+compile_*.bat
+run_test.bat
+debug_run.bat
+test_basic.bat
+START.bat
+
+# Reports
+*_REPORT.md
+*_SUMMARY.md
+TEST_STATISTICS.md
+REPORT_INDEX.md
+QUICK_START_GUIDE.md
+IMPLEMENTATION_PROGRESS.md
+FINAL_VERIFICATION_REPORT.md
+VERIFICATION_SUMMARY.md
+
+# Temporary files
+DIRECTORY_STRUCTURE.txt
+
+# Tools
+tools/

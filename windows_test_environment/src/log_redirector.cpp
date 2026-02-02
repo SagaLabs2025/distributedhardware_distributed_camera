@@ -71,7 +71,9 @@ LogRedirector::~LogRedirector() {
 }
 
 void LogRedirector::Initialize() {
-    DHLOGI("[LOG_REDIRECTOR] Initialize");
+    // 不要在初始化时使用DHLOGI，会导致死锁
+    // 使用标准输出代替
+    std::cout << "[LOG_REDIRECTOR] Initialize" << std::endl;
     StartCapture();
 }
 
@@ -135,14 +137,16 @@ void LogRedirector::StartCapture() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (capturing_) return;
     capturing_ = true;
-    DHLOGI("[LOG_REDIRECTOR] Log capture started");
+    // 不要在持有锁时调用DHLOGI，会导致死锁
+    std::cout << "[LOG_REDIRECTOR] Log capture started" << std::endl;
 }
 
 void LogRedirector::StopCapture() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!capturing_) return;
     capturing_ = false;
-    DHLOGI("[LOG_REDIRECTOR] Log capture stopped");
+    // 不要在持有锁时调用DHLOGI，会导致死锁
+    std::cout << "[LOG_REDIRECTOR] Log capture stopped" << std::endl;
 }
 
 void LogRedirector::RedirectDHLOG(LogLevel level, const std::string& tag,

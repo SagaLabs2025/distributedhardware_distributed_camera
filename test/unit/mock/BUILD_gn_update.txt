@@ -1,0 +1,11 @@
+# 在mock/BUILD.gn中添加外部依赖
+external_deps = [
+    "device_manager:devicemanagersdk",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    # 添加libyuv和ffmpeg
+    "libyuv:libyuv",
+    "ffmpeg:avcodec",
+    "ffmpeg:avformat",
+    "ffmpeg:swscale",
+]

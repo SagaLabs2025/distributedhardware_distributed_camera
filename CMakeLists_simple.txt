@@ -1,0 +1,48 @@
+# Distributed Camera Test Environment - Console Version
+
+cmake_minimum_required(VERSION 3.16)
+project(DistributedCameraTest)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages
+find_package(Threads REQUIRED)
+
+# Mock framework sources
+set(MOCK_SOURCES
+    mock/src/mock_implementation.cpp
+    mock/src/mock_module_manager.cpp
+    mock/src/mock_video_source.cpp
+    mock/src/data_buffer.cpp
+)
+
+# Services sources
+set(SERVICES_SOURCES
+    services/src/distributed_camera_source_impl.cpp
+    services/src/distributed_camera_sink_impl.cpp
+    services/src/distributed_camera_service_factory.cpp
+)
+
+# Create executable
+add_executable(DistributedCameraTest
+    main.cpp
+    ${MOCK_SOURCES}
+    ${SERVICES_SOURCES}
+)
+
+# Include directories
+target_include_directories(DistributedCameraTest PRIVATE
+    mock/include
+    services/include
+)
+
+# Link libraries
+target_link_libraries(DistributedCameraTest
+    Threads::Threads
+)
+
+# For Windows, add ws2_32 for socket support
+if(WIN32)
+    target_link_libraries(DistributedCameraTest ws2_32)
+endif()

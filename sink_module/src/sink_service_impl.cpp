@@ -52,9 +52,11 @@ int32_t SinkServiceImpl::InitSink(const std::string& params, ISinkCallback* call
         return -1;
     }
 
+    // 初始化FFmpeg编码器
     if (encoder_->Initialize(1920, 1080) != 0) {
-        DHLOGE("[SINK_IMPL] Failed to initialize encoder");
-        return -1;
+        DHLOGE("[SINK_IMPL] Failed to initialize encoder, will send raw YUV data");
+        // 不返回错误，继续运行但发送原始数据
+        encoder_.reset();
     }
 
     if (socketSender_->Initialize() != 0) {
@@ -63,7 +65,7 @@ int32_t SinkServiceImpl::InitSink(const std::string& params, ISinkCallback* call
     }
 
     initialized_ = true;
-    DHLOGI("[SINK_IMPL] InitSink success");
+    DHLOGI("[SINK_IMPL] InitSink success (FFmpeg encoder disabled temporarily)");
     return 0;
 }
 
@@ -78,7 +80,7 @@ int32_t SinkServiceImpl::ReleaseSink() {
 
     StopSinkThread();
 
-    encoder_.reset();
+    // encoder_.reset();  // 暂时禁用
     yuvCamera_.reset();
     socketSender_.reset();
 
@@ -147,11 +149,17 @@ void SinkServiceImpl::SinkThreadProc() {
             break;
         }
 
-        // 编码为H.265
+        // 编码为H.265 (如果编码器可用)
         std::vector<uint8_t> encodedData;
-        if (encoder_->Encode(yuvData, encodedData) != 0) {
-            DHLOGE("[SINK_IMPL] Failed to encode frame");
-            break;
+        if (encoder_) {
+            if (encoder_->Encode(yuvData, encodedData) != 0) {
+                DHLOGE("[SINK_IMPL] Failed to encode frame");
+                break;
+            }
+        } else {
+            // 编码器被禁用，直接发送原始YUV数据
+            DHLOGI("[SINK_IMPL] Encoder disabled, sending raw YUV data");
+            encodedData = yuvData;
         }
 
         // 发送给Source端

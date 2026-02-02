@@ -53,11 +53,24 @@ ohos_shared_library("distributed_camera_channel") {
     "src/dcamera_softbus_session.cpp",
   ]
 
+  # 测试代码通过DCAMERA_TEST_ENABLE宏隔离，仅在测试模式下编译
+  if (defined(DCAMERA_TEST_ENABLE) && DCAMERA_TEST_ENABLE) {
+    sources += [
+      "src/local_tcp_adapter.cpp",
+      "src/communication_adapter_factory.cpp",
+      "src/dcamera_tcp_adapter.cpp",
+    ]
+  }
+
   ldflags = [
     "-fpie",
     "-Wl,-z,relro",
     "-Wl,-z,now",
   ]
+
+  if (target_os == "win") {
+    libs = [ "ws2_32" ]
+  }
 
   deps = [ "${common_path}:distributed_camera_utils" ]
 

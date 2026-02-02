@@ -1,0 +1,59 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos_var.gni")
+import(
+    "//foundation/distributedhardware/distributed_camera/distributedcamera.gni")
+
+# 雙線程隔離架構組件
+import("thread_isolation/BUILD.gn")
+import("thread_isolation/source_sink_manager.gn")
+
+# 虛擬總線通信機制
+import("virtual_bus/BUILD.gn")
+
+# 協議解析和驗證
+import("protocol/BUILD.gn")
+
+# 故障注入功能
+import("fault_injection/BUILD.gn")
+
+# 更新現有的source和sink服務依賴
+ohos_shared_library("distributed_camera_source") {
+  deps += [
+    "${services_path}/thread_isolation:distributed_camera_thread_isolation",
+    "${services_path}/thread_isolation:distributed_camera_source_sink_manager",
+    "${services_path}/virtual_bus:distributed_camera_virtual_bus",
+    "${root_path}/protocol:distributed_camera_protocol",
+    "${root_path}/fault_injection:distributed_camera_fault_injection",
+  ]
+}
+
+ohos_shared_library("distributed_camera_sink") {
+  deps += [
+    "${services_path}/thread_isolation:distributed_camera_thread_isolation",
+    "${services_path}/thread_isolation:distributed_camera_source_sink_manager",
+    "${services_path}/virtual_bus:distributed_camera_virtual_bus",
+    "${root_path}/protocol:distributed_camera_protocol",
+    "${root_path}/fault_injection:distributed_camera_fault_injection",
+  ]
+}
+
+ohos_shared_library("distributed_camera_channel") {
+  deps += [
+    "${services_path}/virtual_bus:distributed_camera_virtual_bus",
+    "${root_path}/protocol:distributed_camera_protocol",
+    "${root_path}/fault_injection:distributed_camera_fault_injection",
+  ]
+}

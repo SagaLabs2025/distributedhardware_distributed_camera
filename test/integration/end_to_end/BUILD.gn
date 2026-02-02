@@ -1,0 +1,94 @@
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/distributedhardware/distributed_camera/distributed_camera.gni")
+
+## 分布式相机端到端完整流程测试
+group("dcamera_complete_e2e_test") {
+  testonly = true
+  deps = [ ":dcamera_complete_test" ]
+}
+
+## 完整流程测试可执行文件
+ohos_unittest("dcamera_complete_test") {
+  module_name = "dcamera_complete_test"
+  test_output_dir = "$distributed_camera_test_output_dir/dcamera_complete_test"
+
+  sources = [
+    "test_complete_dcamera.cpp",
+  ]
+
+  include_dirs = [
+    "//third_party/googletest/googletest/include",
+    "//third_party/googletest/googlemock/include",
+    "${camera_service_path}/sourceservice/include",
+    "${camera_service_path}/sinkservice/include",
+    "${camera_service_path}/base/include",
+    "${interface_kits_path}/camera_source/include",
+    "${interface_kits_path}/camera_sink/include",
+    "${common_path}/include/utils",
+    "${common_path}/include/constants",
+    "${channel_path}/include",
+    "${data_process_path}/include",
+    "${services_path}/include",
+    "//utils/native/base/include",
+    "//foundation/communication/softbus_sdk/interfaces/kits/transport",
+    "//foundation/multimedia/camera_framework/interfaces/innerkits/native",
+    "//drivers/interface/camera/v1_1",
+  ]
+
+  deps = [
+    "${camera_service_path}/sourceservice:distributed_camera_source",
+    "${camera_service_path}/sinkservice:distributed_camera_sink",
+    "${camera_service_path}/base:dcamera_base",
+    "${interface_kits_path}/camera_source:dcamera_source_sdk",
+    "${interface_kits_path}/camera_sink:dcamera_sink_sdk",
+    "${common_path}:dcamera_utils",
+    "${channel_path}:dcamera_channel",
+    "${data_process_path}:dcamera_data_process",
+    "//third_party/googletest:gtest_main",
+    "//third_party/googletest:gmock",
+  ]
+
+  external_deps = [
+    "c_utils:c_utils",
+    "hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+    "safwk:system_ability_fwk",
+    "softbus_sdk:softbus_client",
+    "hdf_core:libhdi",
+    "media_client:media_client",
+    "window_manager:libwm",
+    "access_token:libaccesstoken_sdk",
+  ]
+
+  defines = [
+    "DCAMERA_SUPPORT_CODECS",
+    "DCAMERA_RTC_SUPPORT",
+  ]
+
+  cflags_cc = [
+    "-Wall",
+    "-Werror",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-fPIC",
+    "-fexceptions",
+    "-frtti",
+  ]
+
+  subsystem_name = "distributedhardware"
+  part_name = "distributed_camera"
+}

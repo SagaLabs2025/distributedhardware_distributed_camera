@@ -1,0 +1,104 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/distributedhardware/distributed_camera/distributed_camera.gni")
+
+###############################################
+# Source端工作流测试
+###############################################
+
+ohos_unittest("source_workflow_test") {
+  module_out_path = "${module_output_path}/source"
+
+  sources = [
+    "test_source_workflow.cpp",
+  ]
+
+  # 公共配置
+  public_configs = [
+    "${distributed_camera_path}/common:common_public_config",
+  ]
+
+  # 包含路径
+  include_dirs = [
+    "${distributed_camera_path}/interfaces/inner_kits/native_cpp/camera_source/include",
+    "${distributed_camera_path}/interfaces/inner_kits/native_cpp/camera_source/include/callback",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcamera",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcameramgr",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcameramgr/dcameracontrol",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcameramgr/dcameradata",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcameramgr/dcameradata/feedingsmoother",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcameramgr/dcamerastate",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcameramgr/dcamerahdf",
+    "${distributed_camera_path}/services/cameraservice/sourceservice/include/distributedcameramgr/dcamerainterface",
+    "${distributed_camera_path}/services/cameraservice/base/include",
+    "${distributed_camera_path}/common/include/utils",
+    "${distributed_camera_path}/common/include/constants",
+    "${distributed_camera_path}/services/channel/include",
+    "${distributed_camera_path}/services/data_process/include/pipeline",
+    "${distributed_camera_path}/services/data_process/include/pipeline_node",
+    "//third_party/googletest/googletest/include",
+    "//third_party/googletest/googlemock/include",
+    "${distributed_camera_path}/test/unit/mock/include",
+    "${distributed_camera_path}/test/unit/source",
+  ]
+
+  # 外部依赖
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  # 内部依赖
+  deps = [
+    "${distributed_camera_path}/common:dcamera_common",
+    "${distributed_camera_path}/services/cameraservice/sourceservice:dcamera_source_service",
+    "${distributed_camera_path}/services/cameraservice/base:dcamera_protocol_base",
+    "${distributed_camera_path}/test/unit/mock:avcodec_mock",
+    "${distributed_camera_path}/test/unit/mock:camera_mock",
+    "${distributed_camera_path}/test/unit/mock:surface_mock",
+    "${distributed_camera_path}/test/unit/mock:hdi_mock",
+    "//third_party/googletest:gtest",
+    "//third_party/googletest:gmock",
+  ]
+
+  # 编译配置
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-Wextra",
+    "-Wno-unused-parameter",
+    "-Wno-missing-field-initializers",
+  ]
+
+  cflags_cc = cflags
+
+  # 部分组件
+  subsystem_name = "${distributed_camera_subsystem}"
+  part_name = "${distributed_camera_part_name}"
+}
+
+###############################################
+# 构建组
+###############################################
+
+group("source_test") {
+  testonly = true
+  deps = [
+    ":source_workflow_test",
+  ]
+}

@@ -1,0 +1,22 @@
+# CMakeLists.txt for DHLOG Mock Test
+cmake_minimum_required(VERSION 3.10)
+project(dh_log_test)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# Test executable
+add_executable(test_dh_log test_dh_log.cpp)
+
+# Platform-specific settings
+if(WIN32)
+    # Windows: Enable colors in console
+    target_compile_definitions(test_dh_log PRIVATE _WIN32_WINNT=0x0601)
+    # Link Windows socket library if needed
+    # target_link_libraries(test_dh_log ws2_32)
+elseif(UNIX)
+    # Linux/Unix: Nothing special needed
+endif()
